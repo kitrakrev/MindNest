@@ -177,6 +177,14 @@
                     <button class="btn btn-block btn-info" onclick="toggleGlobalAgentChat()">🧠 Chat with Global Advisor</button>
                     <button class="btn btn-block" onclick="clearChat()">🗑️ Clear Chat</button>
                 </div>
+
+                <div class="panel-section">
+                    <h3>🤖 Robot Gestures</h3>
+                    <button class="btn btn-block btn-success" onclick="robotGestureYes()">👍 Yes (Nod)</button>
+                    <button class="btn btn-block btn-danger" onclick="robotGestureNo()">👎 No (Shake)</button>
+                    <button class="btn btn-block btn-primary" onclick="robotReachHuman()">👋 Reach Human</button>
+                    <button class="btn btn-block" onclick="robotFollowHuman()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">👁️ Follow Human</button>
+                </div>
             </div>
         </div>
     </div>
@@ -226,6 +234,37 @@
                     </select>
                 </div>
                 <button type="submit" class="btn btn-primary btn-block">Create Persona</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Persona Modal -->
+    <div id="editPersonaModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('editPersonaModal')">&times;</span>
+            <h2>Edit Persona</h2>
+            <form onsubmit="updatePersona(event)">
+                <input type="hidden" id="editPersonaId">
+                <div class="form-group">
+                    <label>Name:</label>
+                    <input type="text" id="editPersonaName" required>
+                </div>
+                <div class="form-group">
+                    <label>Description:</label>
+                    <input type="text" id="editPersonaDesc" placeholder="Brief description">
+                </div>
+                <div class="form-group">
+                    <label>System Prompt:</label>
+                    <textarea id="editPersonaPrompt" rows="4" required placeholder="You are..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Type:</label>
+                    <select id="editPersonaType">
+                        <option value="user">User</option>
+                        <option value="real_people">Real People</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Update Persona</button>
             </form>
         </div>
     </div>
@@ -364,5 +403,6 @@
     <script src="/static/admin_functions.js"></script>
 </body>
 </html>
+
 
 
