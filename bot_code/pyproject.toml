@@ -1,0 +1,20 @@
+[project]
+name = "bot-code"
+version = "0.1.0"
+description = "Rock-Paper-Scissors controller for SO-101 robot arm"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "python-dotenv>=1.0.0",
+    "lerobot[feetech]>=0.4.0",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "pydantic>=2.0.0",
+]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["main", "rps_controller", "test_rps", "test_shake", "test_smooth", "api"]

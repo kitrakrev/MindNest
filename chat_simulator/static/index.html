@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+    <title>🎭 Chat Simulator</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎭 Chat Simulator</h1>
+            <p class="subtitle">AI-powered conversation simulation with dynamic personas</p>
+            <div class="admin-controls" style="margin-top: 15px; text-align: center;">
+                <button class="btn btn-sm" onclick="showSystemStats()" style="background: #6366f1; color: white;">📊 Stats</button>
+                <button class="btn btn-sm" onclick="confirmClearMessages()" style="background: #f59e0b; color: white;">🗑️ Clear Chats</button>
+                <button class="btn btn-sm" onclick="confirmClearAll()" style="background: #ef4444; color: white;">⚠️ Reset All</button>
+                <a href="/robot" class="btn btn-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; display: inline-block;">🤖 Robot</a>
+            </div>
+        </header>
+
+        <div class="main-grid">
+            <!-- Left Panel: Groups & Personas -->
+            <div class="panel personas-panel">
+                <div class="panel-header">
+                    <div class="tab-switcher">
+                        <button class="tab-btn active" onclick="switchTab('personas')">👥 Personas</button>
+                        <button class="tab-btn" onclick="switchTab('groups')">🗂️ Groups</button>
+                        <button class="tab-btn" onclick="switchTab('globalAgent')">🧠 Advisor</button>
+                    </div>
+                </div>
+                
+                <!-- Personas Tab -->
+                <div id="personasTab" class="tab-content active">
+                    <div class="tab-actions">
+                        <button class="btn btn-primary btn-sm" onclick="showModal('createPersonaModal')">+ New</button>
+                        <button class="btn btn-info btn-sm" onclick="showModal('generatePersonaModal')">🤖 Generate</button>
+                    </div>
+                    <div id="personasList" class="personas-list">
+                        <p class="empty-state">No personas yet. Create one to get started!</p>
+                    </div>
+                </div>
+                
+                <!-- Groups Tab -->
+                <div id="groupsTab" class="tab-content">
+                    <div class="tab-actions">
+                        <button class="btn btn-primary btn-sm" onclick="showModal('createGroupModal')">+ New Group</button>
+                    </div>
+                    <div id="groupsList" class="groups-list">
+                        <p class="empty-state">No groups yet. Create one to organize personas!</p>
+                    </div>
+                </div>
+                
+                <!-- Global Agent Tab -->
+                <div id="globalAgentTab" class="tab-content">
+                    <div class="global-agent-info">
+                        <h3>🧠 Global Meta-Advisor</h3>
+                        <p class="info-text">Ask for strategic insights and meta-analysis of all conversations.</p>
+                        <div class="memory-stats" id="memoryStats">
+                            <div class="stat-item">
+                                <span class="stat-label">Short-term:</span>
+                                <span class="stat-value" id="shortTermCount">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Long-term:</span>
+                                <span class="stat-value" id="longTermCount">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Queries:</span>
+                                <span class="stat-value" id="totalQueries">0</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-info" onclick="loadMemoryStats()">↻ Refresh Stats</button>
+                        <button class="btn btn-sm btn-secondary" onclick="showModal('viewMemoryModal')">📋 View Memory</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Middle Panel: Chat -->
+            <div class="panel chat-panel">
+                <div class="panel-header">
+                    <h2>💬 Conversation</h2>
+                    <div class="chat-controls">
+                        <button class="btn btn-success" id="startBtn" onclick="startOrContinueSimulation()" disabled>▶ Start / Continue</button>
+                        <button class="btn btn-danger" id="stopBtn" onclick="stopSimulation()" disabled>⏹ Stop</button>
+                        <button class="btn btn-info" onclick="getTLDR('text')">📝 Summary (Text)</button>
+                        <button class="btn btn-info" onclick="getTLDR('video')">🎥 Summary (Video)</button>
+                    </div>
+                </div>
+                <div id="chatMessages" class="chat-messages">
+                    <p class="empty-state">Start a simulation to see messages here</p>
+                </div>
+                
+                <!-- Graph Visualization for Views Mode -->
+                <div id="graphView" class="graph-view" style="display: none;">
+                    <div id="graphStats" class="graph-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Step:</span>
+                            <span id="currentStep">0 / 50</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Reach:</span>
+                            <span id="reachPercent">0%</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Engaged:</span>
+                            <span id="engagedCount">0</span>
+                        </div>
+                    </div>
+                    <canvas id="graphCanvas" width="800" height="600"></canvas>
+                    <div id="graphLegend" class="graph-legend">
+                        <div><span class="legend-dot active"></span> Active</div>
+                        <div><span class="legend-dot engaged"></span> Engaged</div>
+                        <div><span class="legend-dot inactive"></span> Not Reached</div>
+                    </div>
+                </div>
+                
+                <div class="chat-input">
+                    <input type="text" id="userMessage" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
+                    <button class="btn btn-primary" onclick="sendUserMessage()">Send</button>
+                </div>
+            </div>
+
+            <!-- Right Panel: Info & Controls -->
+            <div class="panel info-panel">
+                <div class="panel-header">
+                    <h2>⚙️ Simulation</h2>
+                </div>
+                <div class="simulation-info">
+                    <div class="info-item">
+                        <label>Status:</label>
+                        <span id="simStatus" class="status-badge status-idle">Idle</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Messages:</label>
+                        <span id="msgCount">0</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Active Personas:</label>
+                        <span id="activeCount">0</span>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h3>Simulation Settings</h3>
+                    <div class="form-group">
+                        <label>Group:</label>
+                        <select id="groupSelect">
+                            <option value="">No Group</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Max Turns:</label>
+                        <input type="number" id="maxTurns" value="50" min="1" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label>Turn Delay (s):</label>
+                        <input type="number" id="turnDelay" value="2" min="0.5" max="10" step="0.5">
+                    </div>
+                    <div class="form-group">
+                        <label>Simulation Type:</label>
+                        <select id="simType">
+                            <option value="chat">Chat</option>
+                            <option value="views">Views</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h3>Quick Actions</h3>
+                    <button class="btn btn-block" onclick="showModal('generatePersonaModal')">🤖 Generate from Text</button>
+                    <button class="btn btn-block" onclick="showModal('uploadFileModal')">📁 Upload Conversation</button>
+                    <button class="btn btn-block btn-info" onclick="toggleGlobalAgentChat()">🧠 Chat with Global Advisor</button>
+                    <button class="btn btn-block" onclick="clearChat()">🗑️ Clear Chat</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Group Modal -->
+    <div id="createGroupModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('createGroupModal')">&times;</span>
+            <h2>Create New Group</h2>
+            <form onsubmit="createGroup(event)">
+                <div class="form-group">
+                    <label>Name:</label>
+                    <input type="text" id="groupName" required>
+                </div>
+                <div class="form-group">
+                    <label>Description:</label>
+                    <input type="text" id="groupDesc" placeholder="What's this group about?">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Create Group</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Persona Modal -->
+    <div id="createPersonaModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('createPersonaModal')">&times;</span>
+            <h2>Create New Persona</h2>
+            <form onsubmit="createPersona(event)">
+                <div class="form-group">
+                    <label>Name:</label>
+                    <input type="text" id="personaName" required>
+                </div>
+                <div class="form-group">
+                    <label>Description:</label>
+                    <input type="text" id="personaDesc" placeholder="Brief description">
+                </div>
+                <div class="form-group">
+                    <label>System Prompt:</label>
+                    <textarea id="personaPrompt" rows="4" required placeholder="You are..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Type:</label>
+                    <select id="personaType">
+                        <option value="user">User</option>
+                        <option value="real_people">Real People</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Create Persona</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Generate Persona Modal -->
+    <div id="generatePersonaModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('generatePersonaModal')">&times;</span>
+            <h2>🤖 Generate Personas from Conversation</h2>
+            <form onsubmit="generateFromConversation(event)">
+                <div class="form-group">
+                    <label>Conversation Text:</label>
+                    <textarea id="conversationText" rows="10" required placeholder="Alice: Hello!\nBob: Hi there!"></textarea>
+                    <small>Supported formats: "Name: message", "Name - message", "[Name] message"</small>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Generate Personas</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Upload File Modal -->
+    <div id="uploadFileModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('uploadFileModal')">&times;</span>
+            <h2>📁 Upload Conversation File</h2>
+            <form onsubmit="uploadConversationFile(event)">
+                <div class="form-group">
+                    <label>Select File (.txt):</label>
+                    <input type="file" id="conversationFile" accept=".txt" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Upload & Generate</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- TLDR Modal -->
+    <div id="tldrModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('tldrModal')">&times;</span>
+            <h2>📝 Conversation Summary</h2>
+            <div id="tldrContent" class="tldr-content">
+                <p>Generating summary...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Agent Chat Window -->
+    <div id="globalAgentChatWindow" class="global-agent-chat-window" style="display: none;">
+        <div class="global-agent-header">
+            <div class="header-title">
+                <h3>🧠 Global Meta-Advisor</h3>
+                <div class="advisor-status">
+                    <span class="status-dot"></span>
+                    <small id="advisorStatus">Ready</small>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" onclick="loadMemoryStats()" title="Refresh Memory">
+                    <span>↻</span>
+                </button>
+                <button class="icon-btn" onclick="showModal('viewMemoryModal')" title="View Memory">
+                    <span>📋</span>
+                </button>
+                <button class="icon-btn" onclick="toggleGlobalAgentChat()" title="Close">
+                    <span>✕</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="global-agent-memory-bar">
+            <div class="memory-stat">
+                <span class="stat-label">ST:</span>
+                <span class="stat-value" id="gaShortTermCount">0</span>
+            </div>
+            <div class="memory-stat">
+                <span class="stat-label">LT:</span>
+                <span class="stat-value" id="gaLongTermCount">0</span>
+            </div>
+            <div class="memory-stat">
+                <span class="stat-label">Queries:</span>
+                <span class="stat-value" id="gaTotalQueries">0</span>
+            </div>
+        </div>
+        
+        <div class="global-agent-messages" id="globalAgentMessages">
+            <div class="ga-welcome-message">
+                <p>👋 Hello! I'm your Global Meta-Advisor.</p>
+                <p>I analyze all conversations and provide strategic insights. I have access to:</p>
+                <ul>
+                    <li>📊 All conversation history</li>
+                    <li>🧠 Short-term and long-term memory</li>
+                    <li>🎯 Cross-session pattern recognition</li>
+                </ul>
+                <p>Ask me anything about your simulations!</p>
+            </div>
+        </div>
+        
+        <div class="global-agent-input">
+            <input 
+                type="text" 
+                id="globalAgentInput" 
+                placeholder="Ask for advice, insights, or analysis..."
+                onkeypress="handleGlobalAgentKeyPress(event)"
+            >
+            <button class="btn btn-primary" onclick="sendGlobalAgentMessage()">
+                <span>Send</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- View Memory Modal -->
+    <div id="viewMemoryModal" class="modal">
+        <div class="modal-content modal-large">
+            <span class="close" onclick="closeModal('viewMemoryModal')">&times;</span>
+            <h2>🧠 Global Agent Memory</h2>
+            <div class="memory-view">
+                <div class="memory-section">
+                    <h3>📝 Short-term Memory</h3>
+                    <div id="shortTermMemory" class="memory-list">
+                        <p class="empty-state">Loading...</p>
+                    </div>
+                </div>
+                <div class="memory-section">
+                    <h3>💾 Long-term Memory</h3>
+                    <div id="longTermMemory" class="memory-list">
+                        <p class="empty-state">Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/graph_view.js"></script>
+    <script src="/static/app.js"></script>
+    <script src="/static/groups.js"></script>
+    <script src="/static/admin_functions.js"></script>
+</body>
+</html>
+
+

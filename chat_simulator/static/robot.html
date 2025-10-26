@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 Robot Controller - Rock Paper Scissors</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --border: #e5e7eb;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .control-group {
+            margin-bottom: 30px;
+        }
+
+        .control-group label {
+            display: block;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .slider {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: var(--border);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            background: var(--secondary);
+            transform: scale(1.1);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            border: none;
+        }
+
+        .slider-value {
+            min-width: 60px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 16px;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: var(--light);
+            border-radius: 12px;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .checkbox-container label {
+            margin: 0;
+            text-transform: none;
+            cursor: pointer;
+            font-weight: normal;
+            font-size: 16px;
+        }
+
+        .buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .control-btn {
+            padding: 20px;
+            border: none;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .control-btn:before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .control-btn:active:before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .control-btn .icon {
+            font-size: 48px;
+        }
+
+        .control-btn.rock {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .control-btn.rock:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .control-btn.paper {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .control-btn.paper:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+        }
+
+        .control-btn.scissors {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .control-btn.scissors:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(239, 68, 68, 0.4);
+        }
+
+        .control-btn.random {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            grid-column: 1 / -1;
+        }
+
+        .control-btn.random:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.4);
+        }
+
+        .control-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+        }
+
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+            display: block;
+        }
+
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+            display: block;
+        }
+
+        .status.loading {
+            background: #dbeafe;
+            color: #1e40af;
+            display: block;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--secondary);
+            transform: translateX(-5px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Robot Controller</h1>
+            <p>Control Rock-Paper-Scissors Robot Gestures</p>
+        </div>
+
+        <div class="content">
+            <!-- Duration Control -->
+            <div class="control-group">
+                <label>Duration (seconds)</label>
+                <div class="slider-container">
+                    <input 
+                        type="range" 
+                        class="slider" 
+                        id="duration" 
+                        min="0.5" 
+                        max="10" 
+                        step="0.5" 
+                        value="3.0"
+                    >
+                    <span class="slider-value" id="durationValue">3.0s</span>
+                </div>
+            </div>
+
+            <!-- Shake Toggle -->
+            <div class="control-group">
+                <div class="checkbox-container">
+                    <input type="checkbox" id="withShake">
+                    <label for="withShake">Enable Shake Effect</label>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="buttons-grid">
+                <button class="control-btn rock" onclick="sendCommand('rock')">
+                    <span class="icon">✊</span>
+                    <span>Rock</span>
+                </button>
+
+                <button class="control-btn paper" onclick="sendCommand('paper')">
+                    <span class="icon">✋</span>
+                    <span>Paper</span>
+                </button>
+
+                <button class="control-btn scissors" onclick="sendCommand('scissors')">
+                    <span class="icon">✌️</span>
+                    <span>Scissors</span>
+                </button>
+
+                <button class="control-btn random" onclick="sendCommand('random')">
+                    <span class="icon">🎲</span>
+                    <span>Random</span>
+                </button>
+            </div>
+
+            <!-- Status Display -->
+            <div id="status" class="status"></div>
+
+            <a href="/" class="back-link">← Back to Chat Simulator</a>
+        </div>
+    </div>
+
+    <script>
+        const ROBOT_API_BASE = 'http://localhost:8001';
+
+        // Update duration display
+        document.getElementById('duration').addEventListener('input', (e) => {
+            document.getElementById('durationValue').textContent = e.target.value + 's';
+        });
+
+        async function sendCommand(action) {
+            const duration = parseFloat(document.getElementById('duration').value);
+            const withShake = document.getElementById('withShake').checked;
+            const statusEl = document.getElementById('status');
+
+            // Disable all buttons
+            document.querySelectorAll('.control-btn').forEach(btn => btn.disabled = true);
+
+            // Show loading status
+            statusEl.className = 'status loading';
+            statusEl.textContent = `Executing ${action}...`;
+
+            try {
+                const response = await fetch(`${ROBOT_API_BASE}/${action}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        duration: duration,
+                        with_shake: withShake
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    statusEl.className = 'status success';
+                    statusEl.textContent = `✅ ${action.toUpperCase()} executed successfully!`;
+                } else {
+                    throw new Error(`Server returned ${response.status}`);
+                }
+            } catch (error) {
+                statusEl.className = 'status error';
+                statusEl.textContent = `❌ Error: ${error.message}. Make sure robot server is running on port 8001.`;
+            } finally {
+                // Re-enable buttons
+                document.querySelectorAll('.control-btn').forEach(btn => btn.disabled = false);
+
+                // Clear status after 3 seconds
+                setTimeout(() => {
+                    statusEl.className = 'status';
+                    statusEl.style.display = 'none';
+                }, 3000);
+            }
+        }
+    </script>
+</body>
+</html>
+
